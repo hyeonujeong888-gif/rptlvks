@@ -114,7 +114,7 @@
         .post-title { font-size: 1.125rem; font-weight: 700; color: #ffffff; margin-bottom: 12px; word-break: break-all; letter-spacing: -0.01em; }
         .post-content { font-size: 0.938rem; color: #cbd5e1; white-space: pre-wrap; line-height: 1.6; word-break: break-all; margin-bottom: 16px; }
         
-        /* 업로드 이미지 스타일 (클릭 가능하도록 포인터 설정) */
+        /* 업로드 이미지 스타일 */
         .post-attached-image { max-width: 100%; max-height: 400px; display: block; border-radius: 10px; border: 1px solid #334155; margin-bottom: 16px; object-fit: contain; background: #0f172a; cursor: zoom-in; pointer-events: auto; position: relative; z-index: 5; transition: transform 0.2s; }
         .post-attached-image:hover { transform: scale(1.01); border-color: #3b82f6; }
 
@@ -153,7 +153,7 @@
         .chat-input-area { display: flex; gap: 10px; background: #1e293b; padding: 12px; border-radius: 16px; border: 1px solid #334155; }
         .chat-input { flex-grow: 1; background: #0f172a; border: 1px solid #334155; color: #ffffff; padding: 12px; border-radius: 10px; font-size: 0.875rem; }
 
-        /* 모달 윈도우 기본 */
+        /* 모달 윈도우 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 100; padding: 20px; }
         .modal-content { background: #1e293b; border: 1px solid #334155; padding: 24px; border-radius: 16px; width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); }
         .modal-content h3 { font-size: 1.125rem; color: #fff; text-align: center; font-weight: 700; }
@@ -166,14 +166,13 @@
         .modal-btn.cancel { background: #475569; color: #fff; }
         .modal-btn.cancel:hover { background: #57667a; }
 
-        /* 이미지 전용 모달 스타일 */
+        /* 이미지 전용 모달 */
         .image-viewer-content { max-width: 90vw; max-height: 90vh; background: transparent; border: none; box-shadow: none; align-items: center; justify-content: center; position: relative; }
         .image-viewer-img { max-width: 100%; max-height: 85vh; object-fit: contain; border-radius: 8px; border: 1px solid #334155; }
         .image-viewer-close { position: absolute; top: -35px; right: 0; color: #fff; background: rgba(0,0,0,0.5); border: none; font-size: 1.25rem; cursor: pointer; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 
         .auth-toggle-link { color: #3b82f6; text-align: center; font-size: 0.813rem; cursor: pointer; text-decoration: underline; margin-top: 4px; }
         
-        /* 반응형 미디어 쿼리 */
         @media (max-width: 820px) {
             body { padding: 16px 12px; }
             .container { grid-template-columns: 1fr; gap: 16px; }
@@ -241,7 +240,7 @@
                     <div class="file-upload-row">
                         <label for="fileInput" class="file-upload-label">📸 사진 선택</label>
                         <input type="file" id="fileInput" accept="image/*" onchange="updateFileAndPreview()">
-                        <span id="fileNameText" class="file-name-text">선택된 사진 없음</span>
+                        <span id="fileNameText" class="file-name-text">선택된 사진 없음 (회원만 하루 3회 가능)</span>
                     </div>
                     <div class="upload-preview-box" id="previewBox">
                         <button class="btn-preview-del" onclick="clearFileInput(event)">✕</button>
@@ -269,7 +268,7 @@
 
 <div class="modal" id="loginAuthModal">
     <div class="modal-content" id="authModalTypeLogin">
-        <h3>비밀 공간 로그인</h3>
+        <h3>비밀 공간 로그인 / 입장</h3>
         <input type="text" id="loginId" placeholder="아이디">
         <input type="password" id="loginPw" placeholder="비밀번호">
         <button class="modal-btn confirm" style="margin-top: 4px;" onclick="handleCustomLogin()">로그인</button>
@@ -323,7 +322,6 @@
     const ADMIN_INPUT_PW = "nathan13@";
     const ADMIN_NICKNAME = "관리자";
 
-    // 본인의 파이어베이스 정보 주소 설정
     const firebaseConfig = {
         apiKey: "AIzaSyBQ1Icr5EWcj5zEfYKBbl3B6w1RVap30f4",
         authDomain: "community-2cfc0.firebaseapp.com",
@@ -369,7 +367,7 @@
             }
         } else {
             currentUser = null;
-            userInfoArea.innerHTML = '';
+            userInfoArea.innerHTML = `<button class="modal-btn confirm" style="padding: 4px 12px; font-size: 0.75rem;" onclick="showAuthModal(null)">로그인/가입</button>`;
             if (currentRoomId !== 'main') switchBoard('main');
         }
         updateWriteAreaUI();
@@ -471,8 +469,11 @@
         const anonCheckbox = document.getElementById('anonymousCheckbox');
 
         if (currentRoomId === 'main') {
-            authorArea.innerHTML = `작성자: <input type="text" id="nonAuthAuthor" class="input-anon-author" placeholder="닉네임 입력" maxlength="10">`;
-            if (checkIsAdmin()) { authorArea.innerHTML = `작성자: ${ADMIN_NICKNAME} ⭐`; }
+            if (currentUser) {
+                authorArea.innerHTML = `작성자: ${currentUser.displayName}${checkIsAdmin() ? ' ⭐' : ''}`;
+            } else {
+                authorArea.innerHTML = `작성자: <input type="text" id="nonAuthAuthor" class="input-anon-author" placeholder="닉네임 입력" maxlength="10">`;
+            }
             anonToggleLabel.style.display = 'none';
         } else {
             anonToggleLabel.style.display = 'flex';
@@ -689,7 +690,6 @@
                 const hasLiked = post.likes && post.likes[myUid] === true;
                 const hasDisliked = post.dislikes && post.dislikes[myUid] === true;
 
-                // 클릭 시 줌 확대 팝업이 연동되는 이미지 컴포넌트 구조
                 let imgHtml = '';
                 if(post.imageDataBase64) {
                     imgHtml = `<img src="${post.imageDataBase64}" class="post-attached-image" alt="첨부 이미지" onclick="zoomImage('${post.imageDataBase64}')">`;
@@ -735,7 +735,6 @@
         });
     }
 
-    // 이미지 클릭 시 모달창 띄우기 함수
     function zoomImage(base64Data) {
         const viewerModal = document.getElementById('imageViewerModal');
         const viewerImg = document.getElementById('viewerModalImg');
@@ -785,6 +784,12 @@
         const previewImg = document.getElementById('previewImg');
 
         if(fileInput.files.length > 0) {
+            // [추가] 선택한 순간 비회원 확인 시 즉시 취소
+            if (!currentUser || !currentUser.uid) {
+                alert("🔒 사진 업로드는 로그인한 회원만 이용할 수 있습니다.");
+                clearFileInput(null);
+                return;
+            }
             const file = fileInput.files[0];
             fileNameText.innerText = file.name;
             
@@ -795,7 +800,7 @@
             }
             reader.readAsDataURL(file);
         } else {
-            fileNameText.innerText = "선택된 사진 없음";
+            fileNameText.innerText = "선택된 사진 없음 (회원만 하루 3회 가능)";
             previewBox.style.display = 'none';
         }
     }
@@ -803,7 +808,7 @@
     function clearFileInput(e) {
         if(e) e.preventDefault();
         document.getElementById('fileInput').value = '';
-        document.getElementById('fileNameText').innerText = "선택된 사진 없음";
+        document.getElementById('fileNameText').innerText = "선택된 사진 없음 (회원만 하루 3회 가능)";
         document.getElementById('previewBox').style.display = 'none';
         document.getElementById('previewImg').src = '';
     }
@@ -819,15 +824,18 @@
 
         if (currentRoomId === 'main') {
             const nonAuthInput = document.getElementById('nonAuthAuthor');
-            if(currentUser && checkIsAdmin()) {
-                finalAuthor = ADMIN_NICKNAME;
+            if(currentUser) {
+                finalAuthor = currentUser.displayName;
                 postUid = currentUser.uid;
             } else {
+                if (fileInput.files.length > 0) {
+                    alert('🔒 사진 업로드는 가입된 회원만 가능합니다. 로그인 후 이용해 주세요.');
+                    return;
+                }
                 if (!nonAuthInput.value.trim()) { alert('작성자 닉네임을 입력해 주세요.'); return; }
                 finalAuthor = nonAuthInput.value.trim();
                 const safeGuestNick = finalAuthor.replace(/[\.\#\$\[\]\/]/g, "_");
-                if(currentUser) postUid = currentUser.uid;
-                else postUid = 'guest_' + safeGuestNick;
+                postUid = 'guest_' + safeGuestNick;
             }
         } else {
             if (!currentUser || !currentUser.displayName) { alert('세션이 만료되었습니다. 다시 로그인해 주세요.'); return; }
@@ -843,6 +851,13 @@
         const timeString = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
         if (fileInput.files.length > 0) {
+            // [강제] 한 번 더 백엔드 전송 전 철저하게 로그인 필터링
+            if (!currentUser || postUid.startsWith('guest_') || postUid === 'guest') {
+                alert("🔒 사진 업로드는 로그인한 회원만 가능합니다.");
+                clearFileInput(null);
+                return;
+            }
+
             btnSubmit.disabled = true;
             btnSubmit.innerText = "압축 중...";
 
@@ -911,7 +926,7 @@
         document.getElementById('title').value = ''; 
         document.getElementById('content').value = '';
         clearFileInput(null);
-        document.getElementById('anonymousCheckbox').checked = false;
+        if(document.getElementById('anonymousCheckbox')) document.getElementById('anonymousCheckbox').checked = false;
         btnSubmit.disabled = false;
         btnSubmit.innerText = "등록";
         updateWriteAreaUI();
